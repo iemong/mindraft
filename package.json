@@ -1,26 +1,23 @@
 {
-  "name": "mindraft",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "format": "biome check --write --unsafe \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "turbo": "^2.5.0",
-    "typescript": "5.8.2"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "bun@1.1.43",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "dependencies": {
-    "lefthook": "^1.11.10"
-  }
+	"name": "mindraft",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"format": "biome check --write --unsafe .",
+		"check-types": "turbo run check-types"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"turbo": "^2.5.0",
+		"typescript": "5.8.2"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "bun@1.1.43",
+	"workspaces": ["apps/*", "packages/*"],
+	"dependencies": {
+		"lefthook": "^1.11.10"
+	}
 }
