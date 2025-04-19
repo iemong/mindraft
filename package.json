@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.2",
+    "@remirror/pm": "^3.0.0",
+    "@remirror/react": "^3.0.1",
     "@tailwindcss/vite": "^4.0.12",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
@@ -19,6 +21,7 @@
     "lucide-react": "^0.479.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "remirror": "^3.0.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.12",
     "tailwindcss-animate": "^1.0.7"
