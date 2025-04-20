@@ -24,7 +24,10 @@
 *   **フォーマッター/リンター:** Biome (`biome.json` 参照)
 *   ES Modules (`import`/`export`) 構文を使用し、CommonJS (`require`) は使用しません。
 *   可能な場合は分割代入 (`import { foo } from 'bar'`) を使用します。
-*   *（その他のコーディング規約やリンター設定などを追加）*
+*   UI libraryは `shadcn/ui` を使用します。
+*   スタイルは Tailwind CSS V4 を使用します。
+*   アイコンは `lucide-react` を使用します。
+*   componentをexportするときは、export default ではなく、export const でエクスポートします。
 
 ## 開発ワークフロー
 
