@@ -16,7 +16,11 @@
 		},
 		"test": {
 			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "**/*.{test,spec}.{ts,tsx}"]
+			"inputs": [
+				"src/**/*.{ts,tsx}",
+				"test/**/*.{ts,tsx}",
+				"**/*.{test,spec}.{ts,tsx}"
+			]
 		},
 		"test:watch": {
 			"cache": false,
