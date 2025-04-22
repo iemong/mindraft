@@ -1,12 +1,20 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
+
+// ファイルシステムノードを表すenum
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+enum FileSystemNode {
+    File { name: String, path: String },
+    Directory { name: String, path: String, children: Vec<FileSystemNode> },
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WorkspaceInfo {
     path: String,
-    files: Vec<String>,
+    tree: Vec<FileSystemNode>,
 }
 
 #[tauri::command]
@@ -14,53 +22,66 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-// サブディレクトリを含む .md ファイルを再帰的に収集する関数
-fn collect_md_files(dir_path: &Path, files: &mut Vec<String>) -> Result<(), String> {
-    if dir_path.is_dir() {
-        for entry in fs::read_dir(dir_path).map_err(|e| e.to_string())? {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let path = entry.path();
-            
-            if path.is_dir() {
-                // assets ディレクトリはスキップ
-                if path.file_name().map_or(false, |name| name == "assets") {
-                    continue;
-                }
-                // 再帰的にサブディレクトリを検索
-                collect_md_files(&path, files)?
-            } else if path.is_file() {
-                if let Some(extension) = path.extension() {
-                    if extension == "md" {
-                        files.push(path.to_string_lossy().to_string());
-                    }
-                }
+// 指定されたディレクトリを再帰的に探索し、FileSystemNode の階層構造を構築する関数
+fn build_file_tree(dir_path: &Path) -> Result<Vec<FileSystemNode>, String> {
+    let mut nodes = Vec::new();
+
+    for entry in fs::read_dir(dir_path).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        let name = path.file_name().map_or_else(
+            || "".to_string(),
+            |os_name| os_name.to_string_lossy().to_string(),
+        );
+        let path_str = path.to_string_lossy().to_string();
+
+        if name == "assets" && path.is_dir() {
+            continue;
+        }
+
+        if path.is_dir() {
+            let children = build_file_tree(&path)?;
+            nodes.push(FileSystemNode::Directory {
+                name,
+                path: path_str,
+                children,
+            });
+        } else if path.is_file() {
+            if path.extension().map_or(false, |ext| ext == "md") {
+                nodes.push(FileSystemNode::File { name, path: path_str });
             }
         }
     }
-    Ok(())
+
+    nodes.sort_by(|a, b| {
+        match (a, b) {
+            (FileSystemNode::Directory { .. }, FileSystemNode::File { .. }) => std::cmp::Ordering::Less,
+            (FileSystemNode::File { .. }, FileSystemNode::Directory { .. }) => std::cmp::Ordering::Greater,
+            (FileSystemNode::Directory { name: name_a, .. }, FileSystemNode::Directory { name: name_b, .. }) => name_a.cmp(name_b),
+            (FileSystemNode::File { name: name_a, .. }, FileSystemNode::File { name: name_b, .. }) => name_a.cmp(name_b),
+        }
+    });
+
+    Ok(nodes)
 }
 
 #[tauri::command]
 async fn load_workspace(workspace_path: String) -> Result<WorkspaceInfo, String> {
-    // ディレクトリが存在するか確認
     let workspace_path_obj = Path::new(&workspace_path);
-    if !workspace_path_obj.exists() {
-        return Err("Workspace directory does not exist".to_string());
+    if !workspace_path_obj.exists() || !workspace_path_obj.is_dir() {
+        return Err("Workspace directory does not exist or is not a directory".to_string());
     }
 
-    // assets フォルダの確認と作成
     let assets_path = workspace_path_obj.join("assets");
     if !assets_path.exists() {
         fs::create_dir_all(&assets_path).map_err(|e| e.to_string())?;
     }
 
-    // .md ファイル一覧を再帰的に取得
-    let mut md_files = Vec::new();
-    collect_md_files(workspace_path_obj, &mut md_files)?;
+    let file_tree = build_file_tree(workspace_path_obj)?;
 
     Ok(WorkspaceInfo {
         path: workspace_path,
-        files: md_files,
+        tree: file_tree,
     })
 }
 
@@ -83,19 +104,13 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let (mut rx, mut child) = handle
+                let (_rx, _child) = handle
                     .shell()
                     .sidecar("server")
                     .expect("failed to create sidecar")
                     .args(["--port", "3300"])
                     .spawn()
                     .expect("Failed to spawn sidecar");
-
-                while let Some(event) = rx.recv().await {
-                    if let CommandEvent::Stdout(line) = event {
-                        println!("Sidecar: {}", String::from_utf8_lossy(&line));
-                    }
-                }
             });
             Ok(())
         })

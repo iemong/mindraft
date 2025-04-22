@@ -12,10 +12,24 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 
-// 型定義
+// FileSystemNode を App.tsx からインポートするか、ここで再定義
+type FileSystemNode =
+	| {
+			type: "File";
+			name: string;
+			path: string;
+	  }
+	| {
+			type: "Directory";
+			name: string;
+			path: string;
+			children: FileSystemNode[];
+	  };
+
+// WorkspaceInfo を App.tsx からインポートするか、ここで再定義
 interface WorkspaceInfo {
 	path: string;
-	files: string[];
+	tree: FileSystemNode[];
 }
 
 interface WorkspaceDialogProps {
@@ -105,7 +119,7 @@ export const WorkspaceDialog = ({
 				setError(null);
 
 				// Rustコマンドを呼び出してワークスペースを読み込み
-				const workspace = await invoke<WorkspaceInfo>("load_workspace", {
+				const workspaceInfo = await invoke<WorkspaceInfo>("load_workspace", {
 					workspacePath: path,
 				});
 				// ワークスペースパスをストアに保存
@@ -114,9 +128,22 @@ export const WorkspaceDialog = ({
 				await store.save();
 
 				// 親コンポーネントに通知
-				onWorkspaceLoaded(workspace);
-			} catch (err) {
-				handleError(err, "ワークスペースを読み込めませんでした:");
+				onWorkspaceLoaded(workspaceInfo);
+			} catch (err: unknown) {
+				console.error("Failed to load workspace:", err);
+				let errorMessage = "An unknown error occurred";
+				if (typeof err === "string") {
+					errorMessage = err;
+				} else if (err instanceof Error) {
+					errorMessage = err.message;
+				} else {
+					try {
+						errorMessage = JSON.stringify(err);
+					} catch {
+						errorMessage = "Failed to stringify error object";
+					}
+				}
+				setError(`Failed to load workspace: ${errorMessage}`);
 			} finally {
 				setIsLoading(false);
 			}

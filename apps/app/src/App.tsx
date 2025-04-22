@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
+import { LayoutDashboard, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "./style.css";
-import { File as FileIcon, LayoutDashboard, Save } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WorkspaceDialog from "./components/dialogs/WorkspaceDialog";
 import { Button } from "./components/ui/button";
@@ -12,14 +12,28 @@ import {
 	SidebarHeader,
 	SidebarInset,
 	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
 	SidebarProvider,
 } from "./components/ui/sidebar";
+import FileTree from "./components/FileTree";
 
+// Rust の FileSystemNode に対応する型
+type FileSystemNode =
+	| {
+			type: "File";
+			name: string;
+			path: string;
+	  }
+	| {
+			type: "Directory";
+			name: string;
+			path: string;
+			children: FileSystemNode[];
+	  };
+
+// WorkspaceInfo の型定義も更新
 interface WorkspaceInfo {
 	path: string;
-	files: string[];
+	tree: FileSystemNode[];
 }
 
 function App() {
@@ -36,7 +50,7 @@ function App() {
 			// Cmd/Ctrl+S で保存
 			if ((event.metaKey || event.ctrlKey) && event.key === "s") {
 				event.preventDefault();
-				if (currentFile) {
+				if (currentFile && isEdited) {
 					await saveFile();
 				}
 			}
@@ -47,7 +61,8 @@ function App() {
 		return () => {
 			document.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [currentFile]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentFile, isEdited]);
 
 	// 自動保存タイマーのセットアップ
 	useEffect(() => {
@@ -56,6 +71,7 @@ function App() {
 			// 既存のタイマーをクリア
 			if (autoSaveTimerRef.current) {
 				clearTimeout(autoSaveTimerRef.current);
+				autoSaveTimerRef.current = null;
 			}
 
 			// 30秒後に自動保存
@@ -66,36 +82,51 @@ function App() {
 			}, 30000);
 		}
 
+		// クリーンアップ関数
 		return () => {
 			if (autoSaveTimerRef.current) {
 				clearTimeout(autoSaveTimerRef.current);
 			}
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isEdited, currentFile]);
 
 	// ワークスペースが読み込まれたときのハンドラ
 	const handleWorkspaceLoaded = (loadedWorkspace: WorkspaceInfo) => {
+		setWorkspaceDialogOpen(false);
 		setWorkspace(loadedWorkspace);
+		setCurrentFile(null);
+		setFileContent("");
+		setIsEdited(false);
 		console.log("Workspace loaded:", loadedWorkspace);
 	};
 
 	// ファイルを開くハンドラ
 	const handleOpenFile = async (filePath: string) => {
+		if (filePath === currentFile) {
+			return;
+		}
 		try {
-			// 未保存の変更がある場合、確認
+			// 未保存の変更がある場合、保存するか確認
 			if (isEdited && currentFile) {
 				const confirmed = window.confirm(
 					"You have unsaved changes. Do you want to save them before opening a new file?",
 				);
 				if (confirmed) {
-					await saveFile();
+					const success = await saveFile();
+					if (!success) {
+						// 保存に失敗したらファイルを開かない
+						return;
+					}
 				}
+				// 保存・破棄どちらでも isEdited を false に
 				setIsEdited(false);
 			}
 
 			const content = await invoke<string>("open_file", { filePath });
 			setCurrentFile(filePath);
 			setFileContent(content);
+			setIsEdited(false);
 		} catch (err) {
 			console.error("Failed to open file:", err);
 			toast.error(`Failed to open file: ${err}`);
@@ -110,7 +141,7 @@ function App() {
 
 	// ファイル保存の処理
 	const saveFile = async () => {
-		if (!currentFile) return;
+		if (!currentFile) return false;
 
 		try {
 			await invoke("save_file", {
@@ -118,6 +149,11 @@ function App() {
 				content: fileContent,
 			});
 			setIsEdited(false);
+			// タイマーをクリア
+			if (autoSaveTimerRef.current) {
+				clearTimeout(autoSaveTimerRef.current);
+				autoSaveTimerRef.current = null;
+			}
 			toast.success("File saved successfully");
 			return true;
 		} catch (err) {
@@ -150,25 +186,21 @@ function App() {
 				<SidebarProvider>
 					{/* 左サイドバー: ファイルツリー */}
 					<Sidebar>
-						<SidebarHeader className="px-6 py-3">
-							<h2 className="text-lg font-semibold">ファイル</h2>
+						<SidebarHeader className="px-4 py-3">
+							<h2
+								className="text-lg font-semibold truncate"
+								title={workspace.path}
+							>
+								{workspace.path.split(/[\/\\]/).pop() || workspace.path}
+							</h2>
 						</SidebarHeader>
-						<SidebarContent>
+						<SidebarContent className="px-2 pt-2">
 							<SidebarMenu>
-								{workspace.files.map((file) => {
-									const fileName = file.split("/").pop() || "";
-									return (
-										<SidebarMenuItem key={file}>
-											<SidebarMenuButton
-												isActive={currentFile === file}
-												onClick={() => handleOpenFile(file)}
-											>
-												<FileIcon className="mr-2 h-4 w-4" />
-												<span>{fileName}</span>
-											</SidebarMenuButton>
-										</SidebarMenuItem>
-									);
-								})}
+								<FileTree
+									nodes={workspace.tree}
+									onOpenFile={handleOpenFile}
+									currentFile={currentFile}
+								/>
 							</SidebarMenu>
 						</SidebarContent>
 					</Sidebar>
@@ -177,8 +209,11 @@ function App() {
 						{currentFile ? (
 							<div className="h-full flex flex-col p-4">
 								<div className="flex justify-between items-center mb-4">
-									<h2 className="text-lg font-semibold">
-										{currentFile.split("/").pop()}
+									<h2
+										className="text-lg font-semibold truncate"
+										title={currentFile}
+									>
+										{currentFile.split(/[\/\\]/).pop()}
 										{isEdited && (
 											<span className="text-muted-foreground ml-2">*</span>
 										)}
@@ -194,15 +229,12 @@ function App() {
 									</Button>
 								</div>
 								<Separator className="mb-4" />
-								<div
-									className="flex-1 border rounded-md p-4 overflow-auto"
-									onBlur={handleBlur}
-								>
-									{/* ここに Remirror エディタを実装する予定 */}
+								<div className="flex-1 border rounded-md p-4 overflow-auto">
 									<textarea
-										className="w-full h-full min-h-[500px] focus:outline-none"
+										className="w-full h-full min-h-[500px] focus:outline-none resize-none bg-transparent"
 										value={fileContent}
 										onChange={(e) => handleContentChange(e.target.value)}
+										onBlur={handleBlur}
 									/>
 								</div>
 							</div>
