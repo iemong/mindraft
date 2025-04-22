@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WorkspaceInfo {
@@ -14,36 +14,50 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command]
-async fn load_workspace(workspace_path: String) -> Result<WorkspaceInfo, String> {
-    // ディレクトリが存在するか確認
-    if !Path::new(&workspace_path).exists() {
-        return Err("Workspace directory does not exist".to_string());
-    }
-    
-    // assets フォルダの確認と作成
-    let assets_path = Path::new(&workspace_path).join("assets");
-    if !assets_path.exists() {
-        fs::create_dir_all(&assets_path).map_err(|e| e.to_string())?;
-    }
-    
-    // .md ファイル一覧を取得
-    let entries = fs::read_dir(&workspace_path).map_err(|e| e.to_string())?;
-    let mut md_files = Vec::new();
-    
-    for entry in entries {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-        
-        if path.is_file() {
-            if let Some(extension) = path.extension() {
-                if extension == "md" {
-                    md_files.push(path.to_string_lossy().to_string());
+// サブディレクトリを含む .md ファイルを再帰的に収集する関数
+fn collect_md_files(dir_path: &Path, files: &mut Vec<String>) -> Result<(), String> {
+    if dir_path.is_dir() {
+        for entry in fs::read_dir(dir_path).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+            
+            if path.is_dir() {
+                // assets ディレクトリはスキップ
+                if path.file_name().map_or(false, |name| name == "assets") {
+                    continue;
+                }
+                // 再帰的にサブディレクトリを検索
+                collect_md_files(&path, files)?
+            } else if path.is_file() {
+                if let Some(extension) = path.extension() {
+                    if extension == "md" {
+                        files.push(path.to_string_lossy().to_string());
+                    }
                 }
             }
         }
     }
-    
+    Ok(())
+}
+
+#[tauri::command]
+async fn load_workspace(workspace_path: String) -> Result<WorkspaceInfo, String> {
+    // ディレクトリが存在するか確認
+    let workspace_path_obj = Path::new(&workspace_path);
+    if !workspace_path_obj.exists() {
+        return Err("Workspace directory does not exist".to_string());
+    }
+
+    // assets フォルダの確認と作成
+    let assets_path = workspace_path_obj.join("assets");
+    if !assets_path.exists() {
+        fs::create_dir_all(&assets_path).map_err(|e| e.to_string())?;
+    }
+
+    // .md ファイル一覧を再帰的に取得
+    let mut md_files = Vec::new();
+    collect_md_files(workspace_path_obj, &mut md_files)?;
+
     Ok(WorkspaceInfo {
         path: workspace_path,
         files: md_files,
@@ -64,6 +78,7 @@ async fn save_file(file_path: String, content: String) -> Result<bool, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             let handle = app.handle().clone();

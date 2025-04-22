@@ -1,9 +1,21 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import "./style.css";
-import { listen } from "@tauri-apps/api/event";
+import { File as FileIcon, LayoutDashboard, Save } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WorkspaceDialog from "./components/dialogs/WorkspaceDialog";
+import { Button } from "./components/ui/button";
+import { Separator } from "./components/ui/separator";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarHeader,
+	SidebarInset,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarProvider,
+} from "./components/ui/sidebar";
 
 interface WorkspaceInfo {
 	path: string;
@@ -135,46 +147,55 @@ function App() {
 			/>
 
 			{workspace ? (
-				<div className="flex flex-1 overflow-hidden">
+				<SidebarProvider>
 					{/* 左サイドバー: ファイルツリー */}
-					<div className="w-64 bg-gray-100 p-4 overflow-y-auto">
-						<h2 className="text-lg font-semibold mb-2">Files</h2>
-						<div className="space-y-1">
-							{workspace.files.map((file) => (
-								<button
-									type="button"
-									key={file}
-									className={`p-2 rounded-md cursor-pointer hover:bg-gray-200 ${
-										currentFile === file ? "bg-gray-200" : ""
-									}`}
-									onClick={() => handleOpenFile(file)}
-								>
-									{file.split("/").pop()}
-								</button>
-							))}
-						</div>
-					</div>
-
-					{/* メインコンテンツ: エディタ領域 */}
-					<div className="flex-1 overflow-auto">
+					<Sidebar>
+						<SidebarHeader className="px-6 py-3">
+							<h2 className="text-lg font-semibold">ファイル</h2>
+						</SidebarHeader>
+						<SidebarContent>
+							<SidebarMenu>
+								{workspace.files.map((file) => {
+									const fileName = file.split("/").pop() || "";
+									return (
+										<SidebarMenuItem key={file}>
+											<SidebarMenuButton
+												isActive={currentFile === file}
+												onClick={() => handleOpenFile(file)}
+											>
+												<FileIcon className="mr-2 h-4 w-4" />
+												<span>{fileName}</span>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									);
+								})}
+							</SidebarMenu>
+						</SidebarContent>
+					</Sidebar>
+					<SidebarInset>
+						{/* メインコンテンツ: エディタ領域 */}
 						{currentFile ? (
-							<div className="p-4">
+							<div className="h-full flex flex-col p-4">
 								<div className="flex justify-between items-center mb-4">
 									<h2 className="text-lg font-semibold">
 										{currentFile.split("/").pop()}
-										{isEdited && <span className="text-gray-500 ml-2">*</span>}
+										{isEdited && (
+											<span className="text-muted-foreground ml-2">*</span>
+										)}
 									</h2>
-									<button
-										type="button"
+									<Button
+										variant="secondary"
+										size="sm"
 										onClick={saveFile}
-										className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm"
 										disabled={!isEdited}
 									>
-										Save
-									</button>
+										<Save className="h-4 w-4 mr-2" />
+										保存
+									</Button>
 								</div>
+								<Separator className="mb-4" />
 								<div
-									className="border rounded-md p-4 min-h-[500px]"
+									className="flex-1 border rounded-md p-4 overflow-auto"
 									onBlur={handleBlur}
 								>
 									{/* ここに Remirror エディタを実装する予定 */}
@@ -186,28 +207,27 @@ function App() {
 								</div>
 							</div>
 						) : (
-							<div className="h-full flex items-center justify-center text-gray-500">
-								Select a file to edit
+							<div className="h-full flex items-center justify-center text-muted-foreground">
+								<div className="text-center">
+									<LayoutDashboard className="mx-auto h-8 w-8 mb-2" />
+									<p>ファイルを選択してください</p>
+								</div>
 							</div>
 						)}
-					</div>
-				</div>
+					</SidebarInset>
+				</SidebarProvider>
 			) : (
 				<div className="flex-1 flex items-center justify-center">
 					<div className="text-center">
 						<h2 className="text-xl font-semibold mb-2">
-							No Workspace Selected
+							ワークスペースが選択されていません
 						</h2>
-						<p className="text-gray-600 mb-4">
-							Select a workspace to start editing your Markdown files
+						<p className="text-muted-foreground mb-4">
+							Markdownファイルを編集するためのワークスペースを選択してください
 						</p>
-						<button
-							type="button"
-							onClick={() => setWorkspaceDialogOpen(true)}
-							className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-						>
-							Select Workspace
-						</button>
+						<Button onClick={() => setWorkspaceDialogOpen(true)}>
+							ワークスペースを選択
+						</Button>
 					</div>
 				</div>
 			)}
