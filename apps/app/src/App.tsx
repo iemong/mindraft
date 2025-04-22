@@ -3,6 +3,7 @@ import { LayoutDashboard, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "./style.css";
 import { Toaster, toast } from "sonner";
+import FileTree from "./components/FileTree";
 import WorkspaceDialog from "./components/dialogs/WorkspaceDialog";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
@@ -14,7 +15,6 @@ import {
 	SidebarMenu,
 	SidebarProvider,
 } from "./components/ui/sidebar";
-import FileTree from "./components/FileTree";
 
 // Rust の FileSystemNode に対応する型
 type FileSystemNode =

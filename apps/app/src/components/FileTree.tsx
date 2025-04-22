@@ -1,4 +1,11 @@
 import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible"; // Collapsible をインポート
+import { SidebarMenuButton } from "@/components/ui/sidebar"; // SidebarMenuButton をインポート
+import { cn } from "@/lib/utils"; // cn をインポート
+import {
 	ChevronDown,
 	ChevronRight,
 	File as FileIcon,
@@ -6,13 +13,6 @@ import {
 	FolderOpen,
 } from "lucide-react";
 import type React from "react"; // React をインポート
-import { cn } from "@/lib/utils"; // cn をインポート
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible"; // Collapsible をインポート
-import { SidebarMenuButton } from "@/components/ui/sidebar"; // SidebarMenuButton をインポート
 
 // FileSystemNode 型定義 (App.tsx と同じものを定義)
 export type FileSystemNode =
