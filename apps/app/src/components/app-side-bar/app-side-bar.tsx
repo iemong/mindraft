@@ -1,3 +1,4 @@
+import { FileTree } from "@/components/file-tree";
 import type { WorkspaceInfo } from "@/types/workspace";
 import {
 	Sidebar,
@@ -5,7 +6,6 @@ import {
 	SidebarHeader,
 	SidebarMenu,
 } from "../ui/sidebar";
-import { FileTree } from "@/components/file-tree";
 
 type AppSideBarProps = {
 	workspace: WorkspaceInfo;

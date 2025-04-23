@@ -2,6 +2,9 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 import { useCallback, useEffect, useState } from "react";
 
+import { useError } from "@/hooks/use-error";
+import { loadWorkspace } from "@/lib/commands";
+import type { WorkspaceInfo } from "@/types/workspace";
 import {
 	Dialog,
 	DialogContent,
@@ -10,9 +13,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
-import { useError } from "@/hooks/use-error";
-import type { WorkspaceInfo } from "@/types/workspace";
-import { loadWorkspace } from "@/lib/commands";
 
 type WorkspaceDialogProps = {
 	open: boolean;

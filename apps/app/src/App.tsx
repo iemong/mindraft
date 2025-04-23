@@ -1,14 +1,14 @@
 import { useState } from "react";
 import "./style.css";
-import { WorkspaceDialog } from "./components/workspace-dialog";
-import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { AppSideBar } from "./components/app-side-bar";
-import type { WorkspaceInfo } from "./types/workspace";
-import { Empty } from "./components/empty/empty";
 import { Editor } from "./components/editor";
+import { Empty } from "./components/empty/empty";
+import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
+import { WorkspaceDialog } from "./components/workspace-dialog";
 import { WorkspaceSelector } from "./components/workspace-selector";
-import { openFile, saveFile } from "./lib/commands";
 import { useError } from "./hooks/use-error";
+import { openFile, saveFile } from "./lib/commands";
+import type { WorkspaceInfo } from "./types/workspace";
 
 export const App = () => {
 	const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(true);

@@ -1,9 +1,9 @@
+import { saveFile } from "@/lib/commands";
 import { Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import { saveFile } from "@/lib/commands";
 
 type EditorProps = {
 	currentFile: string;
