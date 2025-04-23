@@ -12,7 +12,6 @@ import {
 	Folder,
 	FolderOpen,
 } from "lucide-react";
-import type React from "react"; // React をインポート
 
 // FileSystemNode 型定義 (App.tsx と同じものを定義)
 export type FileSystemNode =
@@ -29,20 +28,20 @@ export type FileSystemNode =
 	  };
 
 // FileTreeProps インターフェース定義
-interface FileTreeProps {
+type FileTreeProps = {
 	nodes: FileSystemNode[];
 	onOpenFile: (path: string) => void;
 	currentFile: string | null;
 	level?: number; // 階層レベル（インデント用）
-}
+};
 
 // FileTree コンポーネント定義
-const FileTree: React.FC<FileTreeProps> = ({
+export const FileTree = ({
 	nodes,
 	onOpenFile,
 	currentFile,
 	level = 0,
-}) => {
+}: FileTreeProps) => {
 	return (
 		<>
 			{nodes.map((node) => {
@@ -98,5 +97,3 @@ const FileTree: React.FC<FileTreeProps> = ({
 		</>
 	);
 };
-
-export default FileTree; // デフォルトエクスポートを追加

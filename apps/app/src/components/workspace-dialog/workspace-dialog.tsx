@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 import { useCallback, useEffect, useState } from "react";
@@ -11,32 +10,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
+import { useError } from "@/hooks/use-error";
+import type { WorkspaceInfo } from "@/types/workspace";
+import { loadWorkspace } from "@/lib/commands";
 
-// FileSystemNode を App.tsx からインポートするか、ここで再定義
-type FileSystemNode =
-	| {
-			type: "File";
-			name: string;
-			path: string;
-	  }
-	| {
-			type: "Directory";
-			name: string;
-			path: string;
-			children: FileSystemNode[];
-	  };
-
-// WorkspaceInfo を App.tsx からインポートするか、ここで再定義
-interface WorkspaceInfo {
-	path: string;
-	tree: FileSystemNode[];
-}
-
-interface WorkspaceDialogProps {
+type WorkspaceDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onWorkspaceLoaded: (workspace: WorkspaceInfo) => void;
-}
+};
 
 /**
  * ワークスペース選択ダイアログコンポーネント
@@ -48,8 +30,7 @@ export const WorkspaceDialog = ({
 	onWorkspaceLoaded,
 }: WorkspaceDialogProps) => {
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
+	const { showError } = useError();
 	/**
 	 * 保存されたワークスペースを読み込む
 	 */
@@ -61,7 +42,7 @@ export const WorkspaceDialog = ({
 				const storedPath = await store.get<string>("workspacePath");
 
 				if (storedPath) {
-					await loadWorkspace(storedPath);
+					await handleLoadWorkspace(storedPath);
 					// ワークスペースが正常に読み込まれたらダイアログを閉じる
 					onOpenChange(false);
 				}
@@ -82,7 +63,6 @@ export const WorkspaceDialog = ({
 	const openFolderDialog = useCallback(async () => {
 		try {
 			setIsLoading(true);
-			setError(null);
 
 			// Tauriのダイアログを表示
 			const selected = await openDialog({
@@ -93,35 +73,37 @@ export const WorkspaceDialog = ({
 
 			if (selected === null) {
 				// ユーザーがダイアログをキャンセルした場合
-				setError(
+				throw new Error(
 					"フォルダが選択されていません。続行するにはワークスペースフォルダを選択してください。",
 				);
-			} else if (!Array.isArray(selected)) {
+			}
+			if (!Array.isArray(selected)) {
 				// 単一のディレクトリが選択された場合
-				await loadWorkspace(selected);
+				await handleLoadWorkspace(selected);
 				// 成功したらダイアログを閉じる
 				onOpenChange(false);
 			}
-		} catch (err) {
-			handleError(err, "フォルダ選択ダイアログを開けませんでした。");
+		} catch (err: unknown) {
+			showError(
+				err instanceof Error
+					? err.message
+					: "フォルダ選択ダイアログを開けませんでした。",
+			);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [onOpenChange]);
+	}, [onOpenChange, showError]);
 
 	/**
 	 * ワークスペースを読み込む
 	 */
-	const loadWorkspace = useCallback(
+	const handleLoadWorkspace = useCallback(
 		async (path: string) => {
 			try {
 				setIsLoading(true);
-				setError(null);
 
 				// Rustコマンドを呼び出してワークスペースを読み込み
-				const workspaceInfo = await invoke<WorkspaceInfo>("load_workspace", {
-					workspacePath: path,
-				});
+				const workspaceInfo = await loadWorkspace(path);
 				// ワークスペースパスをストアに保存
 				const store = await load("mindraft.json", { autoSave: true });
 				await store.set("workspacePath", path);
@@ -143,45 +125,24 @@ export const WorkspaceDialog = ({
 						errorMessage = "Failed to stringify error object";
 					}
 				}
-				setError(`Failed to load workspace: ${errorMessage}`);
+				showError(`Failed to load workspace: ${errorMessage}`);
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[onWorkspaceLoaded],
+		[onWorkspaceLoaded, showError],
 	);
-
-	/**
-	 * エラーハンドリング共通処理
-	 */
-	const handleError = (err: unknown, baseMessage: string) => {
-		console.error(baseMessage, err);
-		let errorMessage = baseMessage;
-
-		if (err instanceof Error) {
-			errorMessage += ` ${err.message}`;
-		}
-
-		setError(`${errorMessage} もう一度お試しください。`);
-	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle>ワークスペースを選択</DialogTitle>
-					<DialogDescription>
-						Mindraftワークスペースとして使用するフォルダを選択してください。
-						すべてのMarkdownファイルはここに保存されます。
-					</DialogDescription>
 				</DialogHeader>
-
-				{error && (
-					<div className="p-3 bg-red-100 text-red-700 rounded-md mt-2">
-						{error}
-					</div>
-				)}
-
+				<DialogDescription>
+					Mindraftワークスペースとして使用するフォルダを選択してください。
+					すべてのMarkdownファイルはここに保存されます。
+				</DialogDescription>
 				<DialogFooter className="mt-4">
 					<button
 						type="button"
@@ -203,5 +164,3 @@ export const WorkspaceDialog = ({
 		</Dialog>
 	);
 };
-
-export default WorkspaceDialog;
