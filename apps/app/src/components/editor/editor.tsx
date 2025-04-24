@@ -1,12 +1,12 @@
+import { HEADING, type Transformer } from "@lexical/markdown";
+import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { HeadingNode } from "@lexical/rich-text";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
-import { type Transformer, HEADING } from "@lexical/markdown";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { HeadingNode } from "@lexical/rich-text";
 
 export const TRANSFORMERS: Array<Transformer> = [HEADING];
 
