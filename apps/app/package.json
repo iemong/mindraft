@@ -12,6 +12,7 @@
 		"test:watch": "vitest "
 	},
 	"dependencies": {
+		"@lexical/list": "^0.30.0",
 		"@lexical/markdown": "^0.30.0",
 		"@lexical/react": "^0.30.0",
 		"@lexical/rich-text": "^0.30.0",
