@@ -65,7 +65,7 @@
     *   **目的:** mindraft エディタ機能を提供
     *   **主な機能:**
         - 左側にワークスペース内のファイルツリー & タグ検索サイドバー
-        - 中央に Remirror (ProseMirror) ベースの WYSIWYG/Markdown ハイブリッドエディタ (折り畳み & フォーカスモード対応)
+        - 中央に Lexical ベースのエディタ (基本機能、将来的に拡張予定)
         - 右側に Vercel AI SDK を用いたチャットサイドバー (/chat, /summarize, JSON 出力)
         - 画像/動画のドラッグ&ドロップで `assets/` へコピー、自動 WebP 変換オプション付き
         - YAML front‑matter によるメタデータ・タグ管理

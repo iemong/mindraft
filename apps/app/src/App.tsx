@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./style.css";
 import { AppSideBar } from "./components/app-side-bar";
-import { Editor } from "./components/editor";
+import { EditorSection } from "./components/editor-section";
 import { Empty } from "./components/empty/empty";
 import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { WorkspaceDialog } from "./components/workspace-dialog";
@@ -79,7 +79,7 @@ export const App = () => {
 					<SidebarInset>
 						{/* メインコンテンツ: エディタ領域 */}
 						{currentFile ? (
-							<Editor
+							<EditorSection
 								key={currentFile}
 								currentFile={currentFile}
 								initialContent={fileContent}
