@@ -6,10 +6,9 @@ import { Editor } from "../editor";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 
-type EditorProps = {
+type EditorSectionProps = {
 	currentFile: string;
 	initialContent: string;
-	onContentChange: (content: string) => void;
 	isEdited: boolean;
 	setIsEdited: (isEdited: boolean) => void;
 };
@@ -17,10 +16,9 @@ type EditorProps = {
 export const EditorSection = ({
 	currentFile,
 	initialContent,
-	onContentChange,
 	isEdited,
 	setIsEdited,
-}: EditorProps) => {
+}: EditorSectionProps) => {
 	const [content, setContent] = useState(initialContent);
 	const autoSaveTimerRef = useRef<number | null>(null);
 
@@ -28,13 +26,15 @@ export const EditorSection = ({
 		setContent(initialContent);
 	}, [initialContent]);
 
-	const handleLocalContentChange = (newContent: string) => {
-		setContent(newContent);
-		if (!isEdited) {
-			setIsEdited(true);
-		}
-		onContentChange(newContent);
-	};
+	const handleMarkdownChange = useCallback(
+		(markdown: string) => {
+			if (markdown !== initialContent && !isEdited) {
+				setIsEdited(true);
+			}
+			setContent(markdown);
+		},
+		[initialContent, isEdited, setIsEdited],
+	);
 
 	const handleSave = useCallback(async () => {
 		try {
@@ -110,8 +110,11 @@ export const EditorSection = ({
 				</Button>
 			</div>
 			<Separator className="mb-4" />
-			<div className="flex-1 overflow-auto">
-				<Editor />
+			<div className="flex-1 overflow-auto" onBlur={handleBlur}>
+				<Editor
+					initialMarkdown={initialContent}
+					onMarkdownChange={handleMarkdownChange}
+				/>
 			</div>
 		</div>
 	);

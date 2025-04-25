@@ -1,0 +1,59 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Mindraft プロジェクトガイドライン
+
+このドキュメントは、Mindraft プロジェクトにおける開発のガイドラインとコンテキストを提供します。
+
+## プロジェクト構成
+
+*   **モノレポ:** Turborepo ([turbo.json](mdc:turbo.json)) を使用したモノレポ構成です。
+    *   `apps/`: アプリケーション ([app](mdc:apps/app), [sidecar-app](mdc:apps/sidecar-app))
+    *   `packages/`: 共有パッケージ ([eslint-config](mdc:packages/eslint-config), [tailwind-config](mdc:packages/tailwind-config), [tsconfig](mdc:packages/tsconfig))
+
+## 主要なコマンド (ルートディレクトリで実行)
+
+*   `bun run build`: プロジェクト全体をビルド ([turbo.json](mdc:turbo.json))
+*   `bun run dev`: 開発モードで起動 ([turbo.json](mdc:turbo.json))
+    *   `app`: ポート 1420 ([app/src-tauri/tauri.conf.json](mdc:app/src-tauri/tauri.conf.json))
+    *   `sidecar-app`: ポート 3001 ([sidecar-app/src/index.ts](mdc:sidecar-app/src/index.ts))
+*   `bun run format`: Biome ([biome.json](mdc:biome.json)) でコードをフォーマット
+*   `bun run check-types`: TypeScript ([package.json](mdc:package.json)) の型チェック
+
+## コードスタイル
+
+*   **フォーマッター/リンター:** Biome ([biome.json](mdc:biome.json))
+*   **モジュール:** ES Modules (`import`/`export`)
+*   **UI:** `shadcn/ui` ([app/src/components/ui](mdc:app/src/components/ui))
+*   **スタイリング:** Tailwind CSS V4 ([packages/tailwind-config/tailwind.config.ts](mdc:packages/tailwind-config/tailwind.config.ts))
+*   **アイコン:** `lucide-react` ([app/package.json](mdc:app/package.json))
+*   **エクスポート:** `export const` を使用 (デフォルトエクスポートは使用しない)
+*   **ファイル名:** すべてケバブケース (`kebab-case`) にしてください。
+
+## 開発ワークフロー
+
+*   **型チェック:** コード変更後は `bun run check-types` を実行してください。
+*   **UI 確認:** UI変更時は Playwright で `localhost:1420` のスクリーンショットを撮り確認してください。
+*   **Git Hooks:** Lefthook ([lefthook.yml](mdc:lefthook.yml)) がコミット前にチェックを実行します。
+*   **ブランチ:** `feature/xxx`, `fix/yyy` など。
+
+## 重要なファイル/設定
+
+*   [turbo.json](mdc:turbo.json): Turborepo 設定
+*   [biome.json](mdc:biome.json): Biome 設定
+*   [lefthook.yml](mdc:lefthook.yml): Git フック設定
+*   [.tool-versions](mdc:.tool-versions): Node.js バージョン管理
+*   [package.json](mdc:package.json): プロジェクト全体の依存関係と `packageManager` (bun)
+*   [app/src-tauri/tauri.conf.json](mdc:app/src-tauri/tauri.conf.json): Tauri アプリ設定
+*   [sidecar-app/src/index.ts](mdc:sidecar-app/src/index.ts): サイドカーアプリのエントリポイント
+
+## アプリケーション概要
+
+*   **`app/` ([app](mdc:apps/app))**: Tauri アプリケーション (フロントエンド)。
+    *   ファイルツリー、Lexical エディタ、AI チャットサイドバーを提供。
+    *   画像/動画 D&D、YAML front-matter、MCP 連携。
+*   **`sidecar-app/` ([sidecar-app](mdc:apps/sidecar-app))**: Node.js (Hono) サイドカーサーバー。
+    *   ローカルバックエンド API (`/chat`, `/fetch`) を提供。
+    *   Vercel AI SDK、MCP 転送機能。
