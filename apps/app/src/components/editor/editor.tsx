@@ -7,10 +7,10 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { EDITOR_NODES, TRANSFORMERS } from "./config/editor-config";
 import { editorTheme } from "./edit-theme";
 import { EditorUpdaterPlugin } from "./plugins/editor-updater-plugin";
 import { MarkdownOnChangePlugin } from "./plugins/markdown-on-change-plugin";
-import { EDITOR_NODES, TRANSFORMERS } from "./config/editor-config";
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed.

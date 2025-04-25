@@ -1,6 +1,6 @@
+import { $convertToMarkdownString } from "@lexical/markdown";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import type { EditorState } from "lexical";
-import { $convertToMarkdownString } from "@lexical/markdown";
 import { TRANSFORMERS } from "../config/editor-config";
 
 type MarkdownOnChangePluginProps = {
