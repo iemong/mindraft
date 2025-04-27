@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import "./style.css";
 import { AppSideBar } from "./components/app-side-bar";
 import { EditorSection } from "./components/editor-section";
@@ -6,6 +6,7 @@ import { Empty } from "./components/empty/empty";
 import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { WorkspaceDialog } from "./components/workspace-dialog";
 import { WorkspaceSelector } from "./components/workspace-selector";
+import { useEditorContext } from "./components/editor/context/editor-context";
 import { useError } from "./hooks/use-error";
 import { openFile, saveFile } from "./lib/commands";
 import type { WorkspaceInfo } from "./types/workspace";
@@ -13,11 +14,19 @@ import type { WorkspaceInfo } from "./types/workspace";
 export const App = () => {
 	const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(true);
 	const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
-	const [currentFile, setCurrentFile] = useState<string | null>(null);
-	const [fileContent, setFileContent] = useState<string>("");
-	const [initialContent, setInitialContent] = useState<string>("");
-	const [isEdited, setIsEdited] = useState(false);
 	const { showError } = useError();
+
+	// エディタコンテキストから状態を取得
+	const {
+		currentFile,
+		setCurrentFile,
+		fileContent,
+		setFileContent,
+		initialContent,
+		setInitialContent,
+		isEdited,
+		setIsEdited,
+	} = useEditorContext();
 
 	// ワークスペースが読み込まれたときのハンドラ
 	const handleWorkspaceLoaded = (loadedWorkspace: WorkspaceInfo) => {
@@ -56,21 +65,6 @@ export const App = () => {
 		}
 	};
 
-	// ファイル内容の変更ハンドラ
-	const handleContentChange = useCallback(
-		(content: string) => {
-			setFileContent(content);
-			setIsEdited(content !== initialContent);
-		},
-		[initialContent],
-	);
-
-	// ファイル保存完了ハンドラ
-	const handleSaveComplete = useCallback(() => {
-		setInitialContent(fileContent);
-		setIsEdited(false);
-		console.log("Save complete");
-	}, [fileContent]);
 	console.log(isEdited);
 
 	return (
@@ -92,18 +86,7 @@ export const App = () => {
 					/>
 					<SidebarInset>
 						{/* メインコンテンツ: エディタ領域 */}
-						{currentFile ? (
-							<EditorSection
-								key={currentFile}
-								currentFile={currentFile}
-								initialContent={initialContent}
-								isEdited={isEdited}
-								onContentChange={handleContentChange}
-								onSaveComplete={handleSaveComplete}
-							/>
-						) : (
-							<Empty />
-						)}
+						{currentFile ? <EditorSection key={currentFile} /> : <Empty />}
 					</SidebarInset>
 				</SidebarProvider>
 			) : (
