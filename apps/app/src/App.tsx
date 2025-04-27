@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import "./style.css";
 import { AppSideBar } from "./components/app-side-bar";
 import { EditorSection } from "./components/editor-section";
@@ -15,6 +15,7 @@ export const App = () => {
 	const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
 	const [currentFile, setCurrentFile] = useState<string | null>(null);
 	const [fileContent, setFileContent] = useState<string>("");
+	const [initialContent, setInitialContent] = useState<string>("");
 	const [isEdited, setIsEdited] = useState(false);
 	const { showError } = useError();
 
@@ -24,6 +25,7 @@ export const App = () => {
 		setWorkspace(loadedWorkspace);
 		setCurrentFile(null);
 		setFileContent("");
+		setInitialContent("");
 		setIsEdited(false);
 		console.log("Workspace loaded:", loadedWorkspace);
 	};
@@ -47,6 +49,7 @@ export const App = () => {
 			const content = await openFile(filePath);
 			setCurrentFile(filePath);
 			setFileContent(content);
+			setInitialContent(content);
 			setIsEdited(false);
 		} catch (err) {
 			showError(`Failed to open file: ${err}`);
@@ -54,10 +57,21 @@ export const App = () => {
 	};
 
 	// ファイル内容の変更ハンドラ
-	const handleContentChange = (content: string) => {
-		setFileContent(content);
-		setIsEdited(true);
-	};
+	const handleContentChange = useCallback(
+		(content: string) => {
+			setFileContent(content);
+			setIsEdited(content !== initialContent);
+		},
+		[initialContent],
+	);
+
+	// ファイル保存完了ハンドラ
+	const handleSaveComplete = useCallback(() => {
+		setInitialContent(fileContent);
+		setIsEdited(false);
+		console.log("Save complete");
+	}, [fileContent]);
+	console.log(isEdited);
 
 	return (
 		<div className="flex flex-col h-screen">
@@ -82,10 +96,10 @@ export const App = () => {
 							<EditorSection
 								key={currentFile}
 								currentFile={currentFile}
-								initialContent={fileContent}
-								onContentChange={handleContentChange}
+								initialContent={initialContent}
 								isEdited={isEdited}
-								setIsEdited={setIsEdited}
+								onContentChange={handleContentChange}
+								onSaveComplete={handleSaveComplete}
 							/>
 						) : (
 							<Empty />

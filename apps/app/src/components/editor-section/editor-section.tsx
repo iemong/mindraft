@@ -10,14 +10,16 @@ type EditorSectionProps = {
 	currentFile: string;
 	initialContent: string;
 	isEdited: boolean;
-	setIsEdited: (isEdited: boolean) => void;
+	onContentChange: (content: string) => void;
+	onSaveComplete?: () => void;
 };
 
 export const EditorSection = ({
 	currentFile,
 	initialContent,
 	isEdited,
-	setIsEdited,
+	onContentChange,
+	onSaveComplete,
 }: EditorSectionProps) => {
 	const [content, setContent] = useState(initialContent);
 	const autoSaveTimerRef = useRef<number | null>(null);
@@ -28,28 +30,26 @@ export const EditorSection = ({
 
 	const handleMarkdownChange = useCallback(
 		(markdown: string) => {
-			if (markdown !== initialContent && !isEdited) {
-				setIsEdited(true);
-			}
 			setContent(markdown);
+			onContentChange(markdown);
 		},
-		[initialContent, isEdited, setIsEdited],
+		[onContentChange],
 	);
 
 	const handleSave = useCallback(async () => {
 		try {
 			await saveFile(currentFile, content);
-			setIsEdited(false);
 			if (autoSaveTimerRef.current) {
 				clearTimeout(autoSaveTimerRef.current);
 				autoSaveTimerRef.current = null;
 			}
 			toast.success("File saved successfully");
+			onSaveComplete?.();
 		} catch (err) {
 			console.error("Failed to save file:", err);
 			toast.error(`Failed to save file: ${err}`);
 		}
-	}, [currentFile, content, setIsEdited]);
+	}, [currentFile, content, onSaveComplete]);
 
 	useEffect(() => {
 		const handleKeyDown = async (event: KeyboardEvent) => {
@@ -86,11 +86,11 @@ export const EditorSection = ({
 		};
 	}, [isEdited, handleSave]);
 
-	const handleBlur = async () => {
+	const handleBlur = useCallback(async () => {
 		if (isEdited) {
 			await handleSave();
 		}
-	};
+	}, [isEdited, handleSave]);
 
 	return (
 		<div className="h-full flex flex-col p-4">
