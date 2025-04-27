@@ -6,7 +6,7 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("/", (c) => {
-	console.log(process.env.OPENAI_API_KEY,'OPENAI_API_KEY');
+	console.log(process.env.OPENAI_API_KEY, "OPENAI_API_KEY");
 	return c.text("Hello Hono from sidecar-app!!!!");
 });
 

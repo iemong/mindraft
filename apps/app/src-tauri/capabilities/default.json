@@ -11,10 +11,12 @@
 		"fs:default",
 		{
 			"identifier": "shell:allow-execute",
-			"allow": [{
-				"name": "binaries/server",
-				"sidecar": true
-			}]
+			"allow": [
+				{
+					"name": "binaries/server",
+					"sidecar": true
+				}
+			]
 		},
 		"shell:allow-open"
 	]
