@@ -9,36 +9,35 @@ import {
 	type Transformer,
 	UNORDERED_LIST,
 } from "@lexical/markdown";
+import {
+	$createHorizontalRuleNode,
+	$isHorizontalRuleNode,
+	HorizontalRuleNode,
+} from "@lexical/react/LexicalHorizontalRuleNode";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import type { Klass, LexicalNode } from "lexical";
 import { LineBreakNode, ParagraphNode } from "lexical";
-import {
-	$isHorizontalRuleNode,
-	$createHorizontalRuleNode,
-	HorizontalRuleNode,
-} from "@lexical/react/LexicalHorizontalRuleNode";
 
 export const HR: ElementTransformer = {
 	dependencies: [HorizontalRuleNode],
 	export: (node: LexicalNode) => {
 		return $isHorizontalRuleNode(node) ? "***" : null;
 	},
-  regExp: /^(---|\*\*\*|___)\s?$/,
-  replace: (parentNode, _1, _2, isImport) => {
-    const line = $createHorizontalRuleNode();
+	regExp: /^(---|\*\*\*|___)\s?$/,
+	replace: (parentNode, _1, _2, isImport) => {
+		const line = $createHorizontalRuleNode();
 
-    // TODO: Get rid of isImport flag
-    if (isImport || parentNode.getNextSibling() != null) {
-      parentNode.replace(line);
-    } else {
-      parentNode.insertBefore(line);
-    }
+		// TODO: Get rid of isImport flag
+		if (isImport || parentNode.getNextSibling() != null) {
+			parentNode.replace(line);
+		} else {
+			parentNode.insertBefore(line);
+		}
 
-    line.selectNext();
-  },
-  type: 'element',
+		line.selectNext();
+	},
+	type: "element",
 };
-
 
 export const TRANSFORMERS: Array<Transformer> = [
 	...BUILT_IN_TRANSFORMERS,
