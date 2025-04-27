@@ -1,12 +1,13 @@
 import { openai } from "@ai-sdk/openai";
 import { serve } from "@hono/node-server";
-import { streamText, type CoreMessage } from "ai";
+import { type CoreMessage, streamText } from "ai";
 import { Hono } from "hono";
 
 const app = new Hono();
 
 app.get("/", (c) => {
-	return c.text(`Hello Hono from sidecar-app! OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ?? "not set"}`);
+	console.log(process.env.OPENAI_API_KEY,'OPENAI_API_KEY');
+	return c.text("Hello Hono from sidecar-app!!!!");
 });
 
 app.post("/", async (c) => {
