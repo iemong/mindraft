@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::str;
+use std::path::{Path};
 use tauri_plugin_shell::{process::CommandEvent, ShellExt};
 
 // ファイルシステムノードを表すenum
@@ -96,21 +97,50 @@ async fn save_file(file_path: String, content: String) -> Result<bool, String> {
     Ok(true)
 }
 
+#[tauri::command]
+async fn start_api_server(app_handle: tauri::AppHandle) -> Result<(), String> {
+    let sidecar = app_handle.shell().sidecar("server")
+        .map_err(|e| e.to_string())?;
+    
+    let (mut rx, _child) = sidecar
+        .args(["--start"])
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    
+    tauri::async_runtime::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            match event {
+                CommandEvent::Stdout(line) => {
+                    if let Ok(text) = str::from_utf8(&line) {
+                        println!("API Server: {}", text);
+                    }
+                }
+                CommandEvent::Stderr(line) => {
+                    if let Ok(text) = str::from_utf8(&line) {
+                        eprintln!("API Server Error: {}", text);
+                    }
+                }
+                _ => {}
+            }
+        }
+    });
+    
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_http::init())
         .setup(|app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let (_rx, _child) = handle
-                    .shell()
-                    .sidecar("server")
-                    .expect("failed to create sidecar")
-                    .args(["--port", "3300"])
-                    .spawn()
-                    .expect("Failed to spawn sidecar");
+                match start_api_server(handle).await {
+                    Ok(_) => println!("API server started successfully"),
+                    Err(e) => eprintln!("Failed to start API server: {}", e),
+                }
             });
             Ok(())
         })
@@ -119,7 +149,8 @@ pub fn run() {
             greet,
             load_workspace,
             open_file,
-            save_file
+            save_file,
+            start_api_server
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

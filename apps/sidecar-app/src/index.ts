@@ -41,4 +41,6 @@ const startServer = async () => {
 	);
 };
 
-export {startServer};
+if (process.argv.includes("--start")) {
+  startServer().catch(console.error);
+}
