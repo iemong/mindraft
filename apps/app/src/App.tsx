@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./style.css";
 import { AppSideBar } from "./components/app-side-bar";
+import { ChatSideBar } from "./components/chat-side-bar";
 import { EditorSection } from "./components/editor-section";
 import { useEditorContext } from "./components/editor/context/editor-context";
 import { Empty } from "./components/empty/empty";
@@ -84,10 +85,13 @@ export const App = () => {
 						handleOpenFile={handleOpenFile}
 						currentFile={currentFile}
 					/>
-					<SidebarInset>
+					<SidebarInset className="flex flex-col">
 						{/* メインコンテンツ: エディタ領域 */}
-						{currentFile ? <EditorSection key={currentFile} /> : <Empty />}
+						<div className="flex-1 overflow-y-auto">
+							{currentFile ? <EditorSection key={currentFile} /> : <Empty />}
+						</div>
 					</SidebarInset>
+					<ChatSideBar />
 				</SidebarProvider>
 			) : (
 				<WorkspaceSelector
