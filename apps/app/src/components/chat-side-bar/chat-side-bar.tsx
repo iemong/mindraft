@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react";
-import { Sidebar } from "../ui/sidebar";
 import { API_ENDPOINT } from "../../lib/constants";
+import { Sidebar } from "../ui/sidebar";
 
 export const ChatSideBar = () => {
 	const { messages, input, handleInputChange, handleSubmit } = useChat({
