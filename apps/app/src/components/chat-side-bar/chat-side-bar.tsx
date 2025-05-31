@@ -1,6 +1,5 @@
 import { useChat } from "@ai-sdk/react";
 import { Bot, Clipboard, Copy, User } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import { API_ENDPOINT } from "../../lib/constants";
 import { useEditorContext } from "../editor/context/editor-context";
