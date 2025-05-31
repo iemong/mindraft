@@ -6,7 +6,8 @@ import { useEditorContext } from "../context/editor-context";
 export function EditorUpdaterPlugin({ markdown }: { markdown: string }) {
 	const [editor] = useLexicalComposerContext();
 	const initialRenderRef = useRef(true);
-	const { setLastSavedMarkdown } = useEditorContext();
+	const lastMarkdownRef = useRef(markdown);
+	const { setLastSavedMarkdown, isEditing } = useEditorContext();
 
 	useEffect(() => {
 		// 初期レンダリング時のみエディタを更新する
@@ -16,9 +17,18 @@ export function EditorUpdaterPlugin({ markdown }: { markdown: string }) {
 			});
 			setLastSavedMarkdown(markdown);
 			initialRenderRef.current = false;
+			lastMarkdownRef.current = markdown;
 			return;
 		}
-	}, [editor, markdown, setLastSavedMarkdown]);
+
+		// 外部からのコンテンツ更新（エディタが編集中でない場合のみ）
+		if (!isEditing && markdown !== lastMarkdownRef.current) {
+			editor.update(() => {
+				$convertFromMarkdownString(markdown, TRANSFORMERS, undefined, true);
+			});
+			lastMarkdownRef.current = markdown;
+		}
+	}, [editor, markdown, setLastSavedMarkdown, isEditing]);
 
 	return null;
 }

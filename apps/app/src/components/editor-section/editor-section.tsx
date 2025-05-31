@@ -99,7 +99,7 @@ export const EditorSection = () => {
 			<Separator className="mb-4" />
 			<div className="flex-1 overflow-auto" onBlur={handleBlur}>
 				<Editor
-					initialMarkdown={initialContent}
+					initialMarkdown={fileContent}
 					onMarkdownChange={handleContentChange}
 				/>
 			</div>

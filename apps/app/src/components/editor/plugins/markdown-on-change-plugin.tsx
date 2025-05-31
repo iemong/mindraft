@@ -26,7 +26,7 @@ export const MarkdownOnChangePlugin = ({
 			// 編集状態を非編集中にリセット（次の入力まで）
 			setTimeout(() => {
 				setIsEditing(false);
-			}, 100);
+			}, 500); // 500msに変更して、ユーザーが入力中に外部更新が干渉しないように
 		});
 	};
 

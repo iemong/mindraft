@@ -20,6 +20,9 @@ type EditorContextType = {
 	// ファイル変更ハンドラ
 	handleContentChange: (content: string) => void;
 	handleSaveComplete: () => void;
+
+	// エディタへのコンテンツ追加
+	appendToEditor: (content: string) => void;
 };
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -47,6 +50,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 		setIsEdited(false);
 	};
 
+	// エディタへのコンテンツ追加
+	const appendToEditor = (content: string) => {
+		const newContent = fileContent ? `${fileContent}\n\n${content}` : content;
+		handleContentChange(newContent);
+	};
+
 	return (
 		<EditorContext.Provider
 			value={{
@@ -69,6 +78,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 				// ファイル変更ハンドラ
 				handleContentChange,
 				handleSaveComplete,
+				appendToEditor,
 			}}
 		>
 			{children}
