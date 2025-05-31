@@ -1,0 +1,19 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(bun add:*)",
+			"Bash(bun remove:*)",
+			"Bash(bun test)",
+			"Bash(bun test:*)",
+			"Bash(bunx:*)",
+			"Bash(cat:*)",
+			"Bash(mkdir:*)",
+			"mcp__playwright__browser_navigate",
+			"mcp__playwright__browser_take_screenshot",
+			"Bash(bun run dev:*)",
+			"Bash(bun run:*)",
+			"Bash(git add:*)"
+		],
+		"deny": []
+	}
+}

@@ -2,15 +2,11 @@ import { useChat } from "@ai-sdk/react";
 import { Bot, Clipboard, Copy, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useEditorContext } from "../editor/context/editor-context";
 import { API_ENDPOINT } from "../../lib/constants";
+import { useEditorContext } from "../editor/context/editor-context";
 import { Button } from "../ui/button";
 import { Sidebar } from "../ui/sidebar";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from "../ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 type MessageProps = {
 	message: {
@@ -22,7 +18,11 @@ type MessageProps = {
 	onCopyToClipboard: (content: string) => void;
 };
 
-const Message = ({ message, onCopyToEditor, onCopyToClipboard }: MessageProps) => {
+const Message = ({
+	message,
+	onCopyToEditor,
+	onCopyToClipboard,
+}: MessageProps) => {
 	const isUser = message.role === "user";
 	const messageContent = message.parts
 		.filter((part) => part.type === "text")
@@ -35,9 +35,7 @@ const Message = ({ message, onCopyToEditor, onCopyToClipboard }: MessageProps) =
 		.join("");
 
 	return (
-		<div
-			className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
-		>
+		<div className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}>
 			{!isUser && (
 				<div className="flex-shrink-0">
 					<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -46,12 +44,12 @@ const Message = ({ message, onCopyToEditor, onCopyToClipboard }: MessageProps) =
 				</div>
 			)}
 
-			<div className={`flex flex-col gap-1 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
+			<div
+				className={`flex flex-col gap-1 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}
+			>
 				<div
 					className={`rounded-lg px-3 py-2 ${
-						isUser
-							? "bg-primary text-primary-foreground"
-							: "bg-muted"
+						isUser ? "bg-primary text-primary-foreground" : "bg-muted"
 					}`}
 				>
 					<div className="whitespace-pre-wrap break-words">
@@ -83,7 +81,10 @@ type MessageActionsProps = {
 	onCopyToClipboard: () => void;
 };
 
-const MessageActions = ({ onCopyToEditor, onCopyToClipboard }: MessageActionsProps) => (
+const MessageActions = ({
+	onCopyToEditor,
+	onCopyToClipboard,
+}: MessageActionsProps) => (
 	<div className="flex gap-1 mt-1">
 		<Tooltip>
 			<TooltipTrigger asChild>
@@ -157,7 +158,10 @@ export const ChatSideBar = () => {
 					))}
 				</div>
 
-				<form onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t">
+				<form
+					onSubmit={handleSubmit}
+					className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t"
+				>
 					<input
 						className="w-full p-2 border border-input bg-background rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
 						value={input}

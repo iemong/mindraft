@@ -1,1 +1,1 @@
-export const API_ENDPOINT = "http://localhost:3001/chat";
+export const API_ENDPOINT = "http://localhost:2421/chat";

@@ -10,7 +10,7 @@ const app = new Hono();
 app.use(
 	"/*",
 	cors({
-		origin: ["http://localhost:1420", "tauri://localhost"],
+		origin: ["http://localhost:2420", "tauri://localhost"],
 	}),
 );
 
@@ -33,7 +33,7 @@ const startServer = async () => {
 	serve(
 		{
 			fetch: app.fetch,
-			port: 3001,
+			port: 2421, // Port for the sidecar app
 		},
 		(info) => {
 			console.log(`Server is running on http://localhost:${info.port}`);
